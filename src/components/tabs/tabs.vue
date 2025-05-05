@@ -7,12 +7,12 @@
           <span class="icon-title">书架</span>
         </div>
       </router-link>
-      <router-link tag="div" class="tab-item" to="/handpick">
+      <!-- <router-link tag="div" class="tab-item" to="/handpick">
         <div class="tab-icon">
           <i class="icon icon-handpick"></i>
           <span class="icon-title">精选</span>
         </div>
-      </router-link>
+      </router-link> -->
       <router-link tag="div" class="tab-item" to="/classify">
         <div class="tab-icon">
           <i class="icon icon-class"></i>
@@ -25,12 +25,12 @@
           <span class="icon-title">搜索</span>
         </div>
       </router-link>
-      <router-link tag="div" class="tab-item" to="/mine">
+      <!-- <router-link tag="div" class="tab-item" to="/mine">
         <div class="tab-icon">
           <i class="icon icon-mine"></i>
           <span class="icon-title">我的</span>
         </div>
-      </router-link>
+      </router-link> -->
     </div>
   </div>
 </template>

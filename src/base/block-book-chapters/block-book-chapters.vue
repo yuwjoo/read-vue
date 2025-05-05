@@ -1,34 +1,21 @@
 <template>
-  <transition name="fade">
-    <div class="chapters" v-show="showFlag">
-      <div class="chapters-title">
-        <i class="icon-back" @click="hide"></i>
-        <div class="book-title-info">
-          <h1 class="book-name">{{ title }}</h1>
-          <p class="book-author">{{ author }}</p>
+  <div class="block-chapters">
+    <div class="blcok-chapters-group">
+      <scroll class="blcok-chapters-content" :data="chapters" ref="chapterList">
+        <div class="blcok-chapters-list">
+          <p
+            class="item"
+            v-for="(item, index) in list"
+            @click.stop.prevent="selectChapter(item, index)"
+            :class="{ isVip: item.isVip }"
+          >
+            <span class="item-text">{{ item.title }}</span
+            ><i v-show="item.isVip" class="icon-lock"></i>
+          </p>
         </div>
-        <p class="reverse" @click="reverseChapters">倒序</p>
-      </div>
-      <div class="chapters-group">
-        <scroll class="chapters-content" :data="chapters" ref="chapterList">
-          <div class="chapters-list">
-            <p
-              class="item"
-              v-for="(item, index) in chaptersList"
-              @click.stop.prevent="selectChapter(item, index)"
-              :class="{ isVip: item.isVip }"
-            >
-              <span class="item-text">{{ item.title }}</span
-              ><i v-show="item.isVip" class="icon-lock"></i>
-            </p>
-          </div>
-          <div class="loading-wrapper" v-show="!chaptersList || !chaptersList.length">
-            <loading></loading>
-          </div>
-        </scroll>
-      </div>
+      </scroll>
     </div>
-  </transition>
+  </div>
 </template>
 <script>
 import Scroll from "base/scroll/scroll";
@@ -47,14 +34,23 @@ export default {
     author: {
       type: String,
       default: ""
+    },
+    // 是否倒序
+    isReverse: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     return {
       showFlag: false,
-      chaptersList: [],
-      isReverse: false
+      chaptersList: []
     };
+  },
+  computed: {
+    list() {
+      return this.isReverse ? this.chapters.slice().reverse() : this.chapters.slice();
+    }
   },
   methods: {
     show() {
@@ -78,31 +74,18 @@ export default {
       this.isReverse = !this.isReverse;
     }
   },
-  watch: {
-    chapters() {
-      this.chaptersList = this.chapters.slice();
-    }
-  },
   components: {
     Scroll,
     Loading
   }
 };
 </script>
-<style lang="stylus">
+<style lang="stylus" scoped>
 @import '~common/stylus/variable.styl'
-.chapters
-  position fixed
-  top 0
-  left 0
-  right 0
-  bottom 0
-  z-index 10
-  width 100%
-  height 100%
+.block-chapters
   background $background-color
   color $font-color
-  .chapters-title
+  .blcok-chapters-title
     height 2.75rem
     position relative
     display flex
@@ -133,18 +116,13 @@ export default {
         flex 1
         font-size $font-size-medium
         line-height 1.25rem
-  .chapters-group
-    position fixed
-    top 2.75rem
-    left 0
-    right 0
-    bottom 0
+  .blcok-chapters-group
     background $background-color-m
-    .chapters-content
+    .blcok-chapters-content
       width 100%
       height 100%
       overflow hidden
-      .chapters-list
+      .blcok-chapters-list
         .item
           line-height 3.125rem
           box-sizing border-box

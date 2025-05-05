@@ -5,6 +5,8 @@ import router from './router/index'
 import store from './store'
 import VueLazyload from 'vue-lazyload'
 import 'common/stylus/index.styl'
+import Vant from 'vant';
+import 'vant/lib/index.css';
 
 Vue.config.productionTip = false
 
@@ -15,6 +17,8 @@ Vue.use(Ajax, {
 Vue.use(VueLazyload, {
   loading: require('common/image/loading/lazy-loading.jpg')
 })
+
+Vue.use(Vant);
 
 /* eslint-disable no-new */
 new Vue({

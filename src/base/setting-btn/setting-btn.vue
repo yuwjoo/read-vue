@@ -32,7 +32,7 @@
           <div class="icon-wrapper" @click="openChapters">
             <i class="icon-directory"></i>
           </div>
-          <span class="title">设置</span>
+          <span class="title">目录</span>
         </div>
         <div class="setting-item" @click="changeMode">
           <i :class="modeCls"></i>

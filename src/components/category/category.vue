@@ -114,7 +114,7 @@
       _getBookList (gender, type, major, minor, start, limit) {
         getBookList(gender, type, major, minor, start, limit).then(res => {
           if (!res.data.books || !res.data.books.length) {
-            this.bookList = []
+            this.bookList = [{id: 11}]
             return
           }
           let data = res.data.books.map(item => createBooks(item))

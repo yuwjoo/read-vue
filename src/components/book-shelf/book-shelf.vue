@@ -1,142 +1,152 @@
 <template>
   <div class="book-shelf-wrapper">
-    <div class="top-bar"></div>
+    <div class="top-bar">
+      <div class="title">书架</div>
+    </div>
+    <div class="search-box-wrapper">
+      <search-box ref="searchBox" placeholder="请输入搜索的书名" @query="onQueryChange"></search-box>
+    </div>
     <scroll :bounce="bounce" class="book-shelf-content" :data="bookList" ref="scroll">
       <div>
-        <div class="recent-box">
-          <h1 class="recent-title" v-show="!readingBook.id">心有猛虎 细嗅蔷薇</h1>
-          <div class="recent-book-wrapper" v-if="readingBook.id">
-            <div class="image">
-              <img :src="readingBook.bookInfo.image"/>
-            </div>
-            <div class="book-info">
-              <h1 class="book-name">{{readingBook.bookInfo.title}}</h1>
-              <h2 class="book-author">{{readingBook.bookInfo.author}}</h2>
-              <p class="recent-read">{{readingBook.lastChapter}}</p>
-              <div class="continue-read" @click="recentRead">继续阅读</div>
-            </div>
-          </div>
-        </div>
         <div class="library">
-          <div class="library-item" v-for="item in bookList"
-                                    @click="selectBook(item)"
-                                    @touchstart="onTouchstart(item)"
-                                    @touchmove="onTouchmove"
-                                    @touchend="onTouchend"
-          >
+          <div class="library-item" v-for="item in bookList" @click="selectBook(item)">
             <div class="library-item-wrapper">
               <div class="library-image">
-                <img :src="item.bookInfo.image" alt="">
+                <img :src="item.bookInfo.image" alt="" />
               </div>
               <div class="library-name">
-                <p class="name">{{item.bookInfo.title}}</p>
+                <p class="name">{{ item.bookInfo.title }}</p>
               </div>
-            </div>
-          </div>
-          <div class="library-item" @click="gotoAddBook">
-            <div class="library-item-wrapper add-wrapper">
-              <i class="icon-add"></i>
             </div>
           </div>
         </div>
+        <Pagination v-model="page.current" :total="page.total" :size="page.size" @change-current="getList" />
       </div>
     </scroll>
-    <confirm ref="confirm"
-             maxTitle="删除书籍"
-             minTitle="你确定要删除该书籍吗？"
-             @selectConfirm="selectConfirm"
-    />
+    <div class="loading-wrapper" v-show="loading">
+      <loading></loading>
+    </div>
   </div>
 </template>
-<script type="text/ecmascript-6">
-  import Scroll from 'base/scroll/scroll'
-  import Confirm from 'base/confirm/confirm'
-  import {mapGetters, mapActions, mapMutations} from 'vuex'
-  import {getChapters} from 'api/handpick'
 
-  export default {
-    data () {
-      return {
-        bounce: false,
-        bookList: [],
-        readingBook: {},
-        currentItem: {}
-      }
+<script>
+import Scroll from "base/scroll/scroll";
+import Confirm from "base/confirm/confirm";
+import { mapGetters, mapActions, mapMutations } from "vuex";
+import { getChapters } from "api/handpick";
+import { getBookList } from "api/lengku8";
+import SearchBox from "base/search-box/search-box";
+import Pagination from "base/pagination";
+import Loading from "base/loading/loading";
+
+export default {
+  data() {
+    return {
+      bounce: false,
+      bookList: [],
+      readingBook: {},
+      currentItem: {},
+      query: "", // 模糊搜索值
+      page: {
+        current: 1, // 当前页
+        size: 10, // 每页条数
+        total: 101 // 总条数
+      },
+      loading: false, // 加载中
+      searchTimer: null // 模糊搜索防抖定时器
+    };
+  },
+  created() {
+    this.getList();
+  },
+  methods: {
+    // 获取列表数据
+    getList() {
+      this.loading = true;
+      getBookList({ current: this.page.current, size: this.page.size, searchValue: this.query })
+        .then((res) => {
+          this.bookList = res.data;
+          this.$set(this.page, "total", res.total);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
-    created () {
-      this.bookList = this.collectList
-      this.readingBook = this.lastReading
+    // 处理模糊查询
+    onQueryChange(query) {
+      this.query = query;
+      clearTimeout(this.searchTimer); // 清除上一个定时器
+      this.searchTimer = setTimeout(() => {
+        this.getList();
+      }, 500);
     },
-    methods: {
-      gotoAddBook () {
+    gotoAddBook() {
+      this.$router.push({
+        path: "/handpick/"
+      });
+    },
+    onTouchstart(item) {
+      this.currentItem = item;
+      this.timer = setTimeout(() => {
+        this.$refs.confirm.show();
+      }, 800);
+    },
+    onTouchmove() {
+      clearTimeout(this.timer);
+    },
+    onTouchend() {
+      clearTimeout(this.timer);
+    },
+    selectConfirm() {
+      this.deleteBook(this.currentItem);
+    },
+    recentRead() {
+      this.refreshRead(this.readingBook);
+    },
+    selectBook(item) {
+      this.$router.push({
+        path: `/book/${item.id}`
+      });
+    },
+    refreshRead(item) {
+      this.setCurrentBook(item.bookInfo);
+      getChapters(item.id).then((res) => {
+        if (res.statusText === "OK") {
+          this.selectRead({
+            id: item.id,
+            list: res.data.chapters,
+            index: item.index
+          });
+        }
         this.$router.push({
-          path: '/handpick/'
-        })
-      },
-      onTouchstart (item) {
-        this.currentItem = item
-        this.timer = setTimeout(() => {
-          this.$refs.confirm.show()
-        }, 800)
-      },
-      onTouchmove () {
-        clearTimeout(this.timer)
-      },
-      onTouchend () {
-        clearTimeout(this.timer)
-      },
-      selectConfirm () {
-        this.deleteBook(this.currentItem)
-      },
-      recentRead () {
-        this.refreshRead(this.readingBook)
-      },
-      selectBook (item) {
-        this.refreshRead(item)
-      },
-      refreshRead (item) {
-        this.setCurrentBook(item.bookInfo)
-        getChapters(item.id).then(res => {
-          if (res.statusText === 'OK') {
-            this.selectRead({
-              id: item.id,
-              list: res.data.chapters,
-              index: item.index
-            })
-          }
-          this.$router.push({
-            path: `/booktext/${item.id}`
-          })
-        })
-      },
-      ...mapActions([
-        'selectRead',
-        'deleteBook'
-      ]),
-      ...mapMutations({
-        setCurrentBook: 'SET_CURRENT_BOOK'
-      })
+          path: `/booktext/${item.id}`
+        });
+      });
     },
-    computed: {
-      ...mapGetters([
-        'collectList',
-        'lastReading',
-        'currentId'
-      ])
+    ...mapActions(["selectRead", "deleteBook"]),
+    ...mapMutations({
+      setCurrentBook: "SET_CURRENT_BOOK"
+    })
+  },
+  computed: {
+    ...mapGetters(["collectList", "lastReading", "currentId"])
+  },
+  watch: {
+    collectList() {
+      this.bookList = this.collectList;
     },
-    watch: {
-      collectList () {
-        this.bookList = this.collectList
-      },
-      lastReading () {
-        this.readingBook = this.lastReading
-      }
-    },
-    components: {
-      Scroll,
-      Confirm
+    lastReading() {
+      this.readingBook = this.lastReading;
     }
+  },
+  components: {
+    Scroll,
+    Confirm,
+    SearchBox,
+    Pagination,
+    Loading
   }
+};
 </script>
 <style lang="stylus" scoped>
 @import '~common/stylus/variable.styl'
@@ -149,13 +159,21 @@
   top 0
   bottom 3.125rem
   overflow hidden
+  padding-top 2.75rem
+
+  .search-box-wrapper
+    padding 1.25rem 1rem 0
   .top-bar
-    width 100%
-    height 2.75rem
-    background $theme-color
     position fixed
     top 0
-    z-index 998
+    left 0
+    right 0
+    height 2.75rem
+    background $theme-color
+    font-size $font-size-large
+    color $font-color-ll
+    text-align center
+    line-height 2.75rem
   .book-shelf-content
     width 100%
     height 100%
@@ -252,5 +270,13 @@
             border 1px solid $border-color
             border-radius 0.25rem
             text-align center
-</style>
 
+.loading-wrapper
+  position fixed
+  top 0
+  left 0
+  right 0
+  bottom 0
+  z-index 998
+  background rgba(0,0,0, 0.8)
+</style>
