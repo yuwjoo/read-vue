@@ -4,9 +4,23 @@
       <div class="title">书架</div>
     </div>
     <div class="search-box-wrapper">
-      <search-box ref="searchBox" placeholder="请输入搜索的书名" @query="onQueryChange"></search-box>
+      <search-box ref="searchBox" placeholder="请输入搜索的书名或作者" @query="onQueryChange"></search-box>
     </div>
-    <scroll :bounce="bounce" class="book-shelf-content" :data="bookList" ref="scroll">
+    <BookList
+      class="book-shelf-content"
+      :list="bookList"
+      :loading="loading"
+      @scroll-to-top="handleScrollToTop"
+      @scroll-to-bottom="handleScrollToBottom"
+    />
+    <!-- <scroll
+      :bounce="bounce"
+      class="book-shelf-content"
+      :data="bookList"
+      :pullUpLoad="{ threshold: 50 }"
+      ref="scroll"
+      @onPullingUp="onPullingUp"
+    >
       <div>
         <div class="library">
           <div class="library-item" v-for="item in bookList" @click="selectBook(item)">
@@ -20,12 +34,18 @@
             </div>
           </div>
         </div>
-        <Pagination v-model="page.current" :total="page.total" :size="page.size" @change-current="getList" />
+        <Pagination
+          class="pagination"
+          v-model="page.current"
+          :total="page.total"
+          :size="page.size"
+          @change-current="getList"
+        />
       </div>
-    </scroll>
-    <div class="loading-wrapper" v-show="loading">
+    </scroll> -->
+    <!-- <div class="loading-wrapper" v-show="loading">
       <loading></loading>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -38,6 +58,7 @@ import { getBookList } from "api/lengku8";
 import SearchBox from "base/search-box/search-box";
 import Pagination from "base/pagination";
 import Loading from "base/loading/loading";
+import BookList from "./components/bookList";
 
 export default {
   data() {
@@ -49,7 +70,7 @@ export default {
       query: "", // 模糊搜索值
       page: {
         current: 1, // 当前页
-        size: 10, // 每页条数
+        size: 0, // 每页条数
         total: 101 // 总条数
       },
       loading: false, // 加载中
@@ -65,12 +86,48 @@ export default {
       this.loading = true;
       getBookList({ current: this.page.current, size: this.page.size, searchValue: this.query })
         .then((res) => {
-          this.bookList = res.data;
+          this.$set(this.page, "current", res.current);
           this.$set(this.page, "total", res.total);
+          this.$set(this.page, "size", res.size);
+          this.bookList.push(
+            ...res.data.map((item, index) => {
+              return {
+                id: item.id,
+                bookInfo: {
+                  ...item.bookInfo,
+                  page: {
+                    ...this.page,
+                    index
+                  }
+                }
+              };
+            })
+          );
+          console.log("获取书架数据", this.bookList);
         })
         .finally(() => {
           this.loading = false;
+          // this.$refs.scroll.finishPullUp();
         });
+    },
+    // 下拉加载
+    handleScrollToTop() {
+      console.log("下拉加载");
+    },
+    // 上拉加载
+    handleScrollToBottom() {
+      if (!this.loading && this.page.current + 1 <= this.page.total / this.page.size) {
+        console.log("上拉加载");
+        this.page.current++;
+        this.getList();
+      }
+    },
+    // 上拉加载
+    onPullingUp() {
+      if (this.page.current + 1 <= this.page.total / this.page.size) {
+        this.page.current++;
+        this.getList();
+      }
     },
     // 处理模糊查询
     onQueryChange(query) {
@@ -144,7 +201,8 @@ export default {
     Confirm,
     SearchBox,
     Pagination,
-    Loading
+    Loading,
+    BookList
   }
 };
 </script>
@@ -162,7 +220,7 @@ export default {
   padding-top 2.75rem
 
   .search-box-wrapper
-    padding 1.25rem 1rem 0
+    padding 1.25rem 1rem
   .top-bar
     position fixed
     top 0
@@ -176,8 +234,9 @@ export default {
     line-height 2.75rem
   .book-shelf-content
     width 100%
-    height 100%
-    overflow hidden
+    height calc(100% - 5rem)
+    overflow-y: auto;
+    // overflow hidden
     .recent-box
       width 100%
       height 16.125rem
@@ -229,9 +288,8 @@ export default {
       display flex
       flex-flow row wrap
       justify-content space-between
-      padding 1.25rem 1rem
+      padding 0 1rem
       .library-item
-        height 10.4375rem
         width 5.6875rem
         margin-bottom 0.625rem
         .library-item-wrapper
@@ -252,7 +310,6 @@ export default {
           .library-name
             vertical-align bottom
             width 100%
-            height 2.625rem
             box-sizing border-box
             padding-top 0.625rem
             font-size $font-size-small
@@ -270,6 +327,9 @@ export default {
             border 1px solid $border-color
             border-radius 0.25rem
             text-align center
+
+      .pagination
+        margin-bottom: 0.625rem;
 
 .loading-wrapper
   position fixed

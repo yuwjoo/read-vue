@@ -1,6 +1,5 @@
 import { useFly } from "@/utils/fly";
 import _$ from "jquery";
-import dsbridge from "dsbridge";
 
 /**
  * @description: 获取小说列表
@@ -11,16 +10,11 @@ import dsbridge from "dsbridge";
  */
 export function getBookList({ current, size, searchValue }) {
   const classify = 0; // 分类 0:全部
-  dsbridge.call("testSyn", "开始请求：" + `https://www3.lengku8.cc/category/${classify}/${current}.html`);
   return useFly()
     .get(`https://www3.lengku8.cc/category/${classify}/${current}.html`)
     .then((res) => {
-      dsbridge.call("testSyn", "请求成功" + res.data);
       const jquery = _$(_$.parseHTML(res.data));
-      const $ = (selector) => {
-        return jquery.find(selector);
-      };
-      dsbridge.call("testSyn", "解析成功");
+      const $ = (selector) => jquery.find(selector);
       const list = $(".CGsectionTwo-right-content")
         .children()
         .map((_i, el) => {
@@ -30,18 +24,23 @@ export function getBookList({ current, size, searchValue }) {
               .attr("href")
               .match(/\/book\/(\d+)\//)[1],
             bookInfo: {
-              image: "https://area51.mitecdn.com/b0/9d/da/b09dda1966bff7204eb5472f5df15cb132952804.jpg",
-              title: $(el).find(".title").text()
+              title: $(el).find(".title").text(),
+              author: $(el).find("a.b").text(),
+              describe: $(el).children("p").eq(2).text(),
+              updateDate: ($(el)
+                .children("p")
+                .eq(3)
+                .text()
+                .match(/[\d-]+/) || [])[0]
             }
           };
         })
         .toArray();
-      const total = Number($(".CGsectionTwo-right-bottom-detail span").eq(1).text() || 0);
+      const current = Number($(".CGsectionTwo-right-bottom-detail span").eq(0).text() || 0);
+      const size = Number($(".CGsectionTwo-right-bottom-detail span").eq(2).text() || 0);
+      const total = Number($(".CGsectionTwo-right-bottom-detail span").eq(1).text() || 0) * size;
 
-      return { data: list, total };
-    })
-    .catch((err) => {
-      dsbridge.call("testSyn", "请求失败" + err);
+      return { data: list, total, current, size };
     });
 }
 
@@ -51,24 +50,49 @@ export function getBookList({ current, size, searchValue }) {
  * @return {*}
  */
 export function getBookDetail({ id }) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve({
-        image: "https://area51.mitecdn.com/b0/9d/da/b09dda1966bff7204eb5472f5df15cb132952804.jpg",
-        title: "署名伺机待发",
-        author: "小溪",
-        ratingScore: "9.8",
-        ratingCount: "1000",
-        classifi: "玄幻",
-        minClass: "玄幻",
-        words: "100000",
-        isSerial: true,
-        id: 1,
-        longInfo: "这是一本非常好看的小说，讲述了一个关于成长的故事。主人公在经历了许多磨难后，终于找到了自己的方向。",
-        update: "2023-10-01"
+  return useFly()
+    .get(`https://www3.lengku8.cc/book/${id}/`)
+    .then((res) => {
+      const jquery = _$(_$.parseHTML(res.data));
+      const $ = (selector) => jquery.find(selector);
+      const title = $(".BGsectionOne-top-right .title").eq(0).text(); // 标题
+      const author = $(".BGsectionOne-top-right .author .b").eq(0).text(); // 作者
+      const authorId = $(".BGsectionOne-top-right .author .b")
+        .eq(0)
+        .attr("href")
+        .match(/\/writer\/(\d+)\//)[1]; // 作者id
+      const categorys = $(".BGsectionOne-top-right .category")
+        .eq(0)
+        .children("span")
+        .map((i, el) => $(el).text())
+        .toArray(); // 类别
+      const updateData = $(".BGsectionOne-top-right .time").eq(0).children("span").text(); // 更新时间
+      const cover = $(".BGsectionOne-top-left .lazyload").attr("_src"); // 封面
+      const intro = $(".BGsectionTwo-bottom").text(); // 简介
+      const lastChapter = $(".BGsectionOne-top-right .newestChapter .r").text(); // 最新章节
+      console.log("详情数据", {
+        id,
+        title,
+        author,
+        authorId,
+        categorys,
+        updateData,
+        cover,
+        intro,
+        lastChapter
       });
-    }, 1000);
-  });
+      return {
+        id,
+        title,
+        author,
+        authorId,
+        categorys,
+        updateData,
+        cover,
+        intro,
+        lastChapter
+      };
+    });
 }
 
 /**

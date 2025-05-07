@@ -4,9 +4,22 @@
       <div class="top-title">
         <i class="icon-back" @click="back"></i>
         <p class="top-book-name" v-show="showTopTitle">{{ topTitle }}</p>
-        <div class="top-title-layer" v-show="upMove" ref="topTitle"></div>
+        <div
+          class="top-title-layer"
+          v-show="upMove"
+          ref="topTitle"
+          :style="{
+            backgroundImage: `url(${bookInfo.cover})`
+          }"
+        ></div>
       </div>
-      <div class="bg-layer" ref="bgLayer"></div>
+      <div
+        class="bg-layer"
+        ref="bgLayer"
+        :style="{
+          backgroundImage: `url(${bookInfo.cover})`
+        }"
+      ></div>
       <div class="book-detail-content" ref="detailContent">
         <scroll
           class="content"
@@ -19,29 +32,29 @@
           <div>
             <div class="book-info-wrapper" ref="bookInfo">
               <div class="book-image">
-                <img :src="bookInfo.image" />
+                <img :src="bookInfo.cover" />
               </div>
               <div class="book-info">
                 <h1 class="book-name">{{ bookInfo.title }}</h1>
-                <p class="book-author">{{ bookInfo.author }}</p>
-                <div class="rating-wrapper">
+                <p class="book-author">作者：{{ bookInfo.author }}</p>
+                <!-- <div class="rating-wrapper">
                   <div class="rating-star">
                     <span v-for="item in starClass">
                       <i :class="item"></i>
                     </span>
                   </div>
                   <p class="rating-info">{{ bookInfo.ratingScore }}分 ({{ bookInfo.ratingCount }}人评)</p>
-                </div>
-                <p class="category">{{ bookInfo.classifi }} | {{ bookInfo.minClass }}</p>
-                <p class="words">{{ bookInfo.words }}字 | {{ bookInfo.isSerial }}</p>
+                </div> -->
+                <p class="category">类别：{{ (bookInfo.categorys || []).join(" | ") }}</p>
+                <!-- <p class="words">{{ bookInfo.words }}字 | {{ bookInfo.isSerial }}</p> -->
               </div>
             </div>
             <div class="book-content" v-show="bookInfo.id">
               <h1 class="short-title">简介</h1>
-              <p class="short-info">{{ bookInfo.longInfo }}</p>
+              <p class="short-info">{{ bookInfo.intro }}</p>
               <div class="catalog-wrapper">
-                <span class="catalog-info">最新 {{ lastChapter }}</span>
-                <span class="updated">{{ bookInfo.update }}</span>
+                <span class="catalog-info">最新 {{ bookInfo.lastChapter }}</span>
+                <span class="updated">{{ bookInfo.updateData }}</span>
                 <!-- <span class="catalog-title"><i class="icon-directory"></i>目录</span> -->
               </div>
             </div>
@@ -409,8 +422,10 @@ export default {
       top 0
       width 100%
       height 100%
-      background url(../../common/image/loading/book-image2.jpg) no-repeat
-      background-size cover
+      background url(../../common/image/loading/book-image2.jpg)
+      background-size: cover;
+      background-repeat: no-repeat;
+      filter: blur(8px) brightness(0.8);
       transform-origin top
       z-index -1
     .icon-back
@@ -432,8 +447,10 @@ export default {
     width 100%
     height 11.5rem
     left 0
-    background url(../../common/image/loading/book-image2.jpg) no-repeat
-    background-size cover
+    background url(../../common/image/loading/book-image2.jpg)
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(8px) brightness(0.8);
     transform-origin top
     z-index -998
   .book-detail-content
@@ -466,8 +483,9 @@ export default {
           .book-name
             font-size $font-size-medium-x
             width 100%
-            height 1.625rem
-            no-wrap(1)
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+            no-wrap(2)
           .book-author
             height 1.5rem
           .rating-wrapper
