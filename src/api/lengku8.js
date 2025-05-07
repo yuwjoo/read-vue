@@ -1,3 +1,7 @@
+import { useFly } from "@/utils/fly";
+import _$ from "jquery";
+import dsbridge from "dsbridge";
+
 /**
  * @description: 获取小说列表
  * @param {*} current 当前页
@@ -6,43 +10,39 @@
  * @return {*}
  */
 export function getBookList({ current, size, searchValue }) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve({
-        data: [
-          {
-            id: 10,
+  const classify = 0; // 分类 0:全部
+  dsbridge.call("testSyn", "开始请求：" + `https://www3.lengku8.cc/category/${classify}/${current}.html`);
+  return useFly()
+    .get(`https://www3.lengku8.cc/category/${classify}/${current}.html`)
+    .then((res) => {
+      dsbridge.call("testSyn", "请求成功" + res.data);
+      const jquery = _$(_$.parseHTML(res.data));
+      const $ = (selector) => {
+        return jquery.find(selector);
+      };
+      dsbridge.call("testSyn", "解析成功");
+      const list = $(".CGsectionTwo-right-content")
+        .children()
+        .map((_i, el) => {
+          return {
+            id: $(el)
+              .find(".title")
+              .attr("href")
+              .match(/\/book\/(\d+)\//)[1],
             bookInfo: {
               image: "https://area51.mitecdn.com/b0/9d/da/b09dda1966bff7204eb5472f5df15cb132952804.jpg",
-              title: "署名伺机待发"
+              title: $(el).find(".title").text()
             }
-          },
-          {
-            id: 12,
-            bookInfo: {
-              image: "https://area51.mitecdn.com/b0/9d/da/b09dda1966bff7204eb5472f5df15cb132952804.jpg",
-              title: "署名伺机待发"
-            }
-          },
-          {
-            id: 13,
-            bookInfo: {
-              image: "https://area51.mitecdn.com/b0/9d/da/b09dda1966bff7204eb5472f5df15cb132952804.jpg",
-              title: "署名伺机待发"
-            }
-          },
-          {
-            id: 14,
-            bookInfo: {
-              image: "https://area51.mitecdn.com/b0/9d/da/b09dda1966bff7204eb5472f5df15cb132952804.jpg",
-              title: "署名伺机待发"
-            }
-          }
-        ],
-        total: 100
-      });
-    }, 1000);
-  });
+          };
+        })
+        .toArray();
+      const total = Number($(".CGsectionTwo-right-bottom-detail span").eq(1).text() || 0);
+
+      return { data: list, total };
+    })
+    .catch((err) => {
+      dsbridge.call("testSyn", "请求失败" + err);
+    });
 }
 
 /**
