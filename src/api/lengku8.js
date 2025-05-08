@@ -70,17 +70,6 @@ export function getBookDetail({ id }) {
       const cover = $(".BGsectionOne-top-left .lazyload").attr("_src"); // 封面
       const intro = $(".BGsectionTwo-bottom").text(); // 简介
       const lastChapter = $(".BGsectionOne-top-right .newestChapter .r").text(); // 最新章节
-      console.log("详情数据", {
-        id,
-        title,
-        author,
-        authorId,
-        categorys,
-        updateData,
-        cover,
-        intro,
-        lastChapter
-      });
       return {
         id,
         title,
@@ -100,93 +89,25 @@ export function getBookDetail({ id }) {
  * @param {*} id 小说id
  * @return {*}
  */
-export function getBookChapters(id) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: 12,
-          title: "第一章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第二章",
-          isVip: false
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        },
-        {
-          id: 12,
-          title: "第三章",
-          isVip: true
-        }
-      ]);
-    }, 1000);
-  });
+export async function getBookChapters({ id }) {
+  const list = [];
+  let currentPage = 1;
+  let totalPage = 0;
+  do {
+    const res = await useFly().get(`https://www3.lengku8.cc/book/${id}/catalog/${currentPage}.html`);
+    const jquery = _$(_$.parseHTML(res.data));
+    const $ = (selector) => jquery.find(selector);
+    $(".BCsectionTwo-top .BCsectionTwo-top-chapter a").each((i, el) => {
+      list.push({
+        id: atob($(el).attr("data-link")).match(/(\d+)\.html/)[1],
+        title: $(el).attr("abc-title")
+      });
+    });
+    totalPage = Number($(".CGsectionTwo-right-bottom-detail span").eq(1).text() || 0);
+    currentPage++;
+  } while (currentPage <= totalPage);
+
+  return list.sort((a, b) => a.id - b.id);
 }
 
 /**
