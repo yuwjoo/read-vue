@@ -42,7 +42,7 @@
     </div>
   </div>
 </template>
-<script type="text/ecmascript-6">
+<script>
   import {getSearchHot} from 'api/search'
   import {mapMutations, mapActions, mapGetters} from 'vuex'
 
