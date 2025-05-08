@@ -1,7 +1,7 @@
 <template>
-  <div class="text-item">
-    <h1 class="text-title">{{ item.title }}</h1>
-    <p class="text" v-for="text in item.textContent">{{ text }}</p>
+  <div class="book-item">
+    <h1 class="book-item__title">{{ source.title }}</h1>
+    <p class="book-item__text" v-for="text in source.contents">{{ text }}</p>
   </div>
 </template>
 
@@ -34,47 +34,21 @@ export default {
 @import '~common/stylus/variable.styl'
 
 .book-item
-    padding 1rem 0.625rem;
-    border-bottom 1px solid $border-color;
-    position relative;
+  padding-bottom 0.625rem
 
-    &.book-item--page-first {
-        padding-top 2.3rem;
-    }
+  &:last-of-type
+    padding-bottom 4.5rem
 
-    .book-item-page-divider {
-        position absolute;
-        top 0.5rem;
-        left 50%;
-        transform translateX(-50%);
-        font-size $font-size-medium-x;
-        color $font-color-ll;
-        background $theme-color;
-        padding 0.2rem 0.5rem;
-        border-radius 0.3rem;
-    }
+  .book-item__title
+    width 100%
+    font-size 24px
+    line-height 48px
+    color $font-color-dd
+    padding-top 32px
+    font-weight 600
 
-    .book-item__title
-        font-size $font-size-large-x;
-        color $font-color-dd;
-        font-weight bold;
-
-        &::before {
-            content "";
-            float left;
-            width 0.3rem;
-            height 1.2rem;
-            background $theme-color;
-            margin 0 0.2rem 0 0;
-        }
-
-    .book-item__info
-        margin-top 0.7rem;
-        font-size $font-size-medium;
-        display flex;
-        justify-content space-between;
-
-    .book-item__describe
-        margin-top 0.7rem;
-        color $font-color-d;
+  .book-item__text
+    margin-top 8px
+    width 100%
+    text-indent 32px
 </style>

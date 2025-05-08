@@ -116,44 +116,24 @@ export async function getBookChapters({ id }) {
  * @param {*} chapterId 目录id
  * @return {*}
  */
-export function getBookContent({ id, chapterId }) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        title: "我是标题",
-        textContent: [
-          "我是内容2222222222我是内容2222222222我是内容2222222222我是内容2222222222我是内容2222222222我是内容2222222222我是内容2222222222",
-          "我是内容333",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容",
-          "我是内容"
-        ]
-      });
-    }, 1000);
+export async function getBookContent({ id, chapterId }) {
+  const res = await useFly().get(`https://www3.lengku8.cc/book/${id}/${chapterId}.html`);
+  const jquery = _$(_$.parseHTML(res.data));
+  const $ = (selector) => jquery.find(selector);
+  const contents = [];
+  let isEnd = false;
+  $(".RBGsectionThree-content p").each((i, el) => {
+    if ($(el).attr("style") === "color:orange;") isEnd = true;
+    if (isEnd) return;
+    contents.push($(el).text());
   });
+  const title = $("#chapterTitle").text(); // 章节标题
+  const preChapterId = ($(".RBGsectionTwo-left .qian_page")
+    .attr("href")
+    .match(/(\d+)\.html/) || [])[1]; // 上一章id
+  const nextChapterId = ($(".RBGsectionTwo-right .hou_page")
+    .eq(0)
+    .attr("href")
+    .match(/(\d+)\.html/) || [])[1]; // 下一章id
+  return { chapterId, title, contents, preChapterId, nextChapterId };
 }

@@ -1,23 +1,29 @@
 <template>
   <transition name="book-text">
     <div>
-      <div class="book-text-wrapper" ref="wrapper">
-        <div class="group">
-          <div class="text-content" ref="textGroup" @click="showSettingBtn">
+      <div class="book-text-wrapper" :class="{ 'book-text-wrapper--isNight': isNight }" ref="wrapper">
+        <div class="group" @click="showSettingBtn">
+          <BookList
+            class="book-text-content"
+            :list="bookList"
+            :loading="loading"
+            @scroll-to-top="handleScrollToTop"
+            @scroll-to-bottom="handleScrollToBottom"
+          />
+          <!-- <div class="text-content" ref="textGroup" @click="showSettingBtn">
             <div class="text-item" v-for="item in chapterList" ref="textWrapper">
               <h1 class="text-title" :class="{ isNight: isNight }" ref="textTitle">{{ item.title }}</h1>
               <p class="text" v-for="text in item.textContent">{{ text }}</p>
             </div>
-            <!-- <p class="loading-chapter">加载下一章</p> -->
-          </div>
+          </div> -->
         </div>
-        <div class="more" v-show="loading">
+        <!-- <div class="more" v-show="loading">
           <img src="../../common/image/loading/timg.gif" width="30" height="30" />
           <p>正在加载下一章节...</p>
         </div>
         <div class="loading-wrapper" v-show="!chapterList.length">
           <loading></loading>
-        </div>
+        </div> -->
         <setting-btn
           :showFlag="setting"
           :isNight="isNight"
@@ -32,8 +38,8 @@
         />
         <div class="book-chapters-wrapper">
           <book-chapters
-            :title="currentBook.title"
-            :author="currentBook.author"
+            :title="$route.query.title"
+            :author="$route.query.author"
             :chapters="bookChapters"
             ref="chapters"
             @select="select"
@@ -49,6 +55,7 @@ import Loading from "base/loading/loading";
 import SettingBtn from "base/setting-btn/setting-btn";
 import BookChapters from "base/book-chapters/book-chapters";
 import Confirm from "base/confirm/confirm";
+import BookList from "./components/bookList";
 
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { getChapterText } from "api/handpick";
@@ -70,7 +77,8 @@ export default {
       isNight: false,
       bgColor: "#c6ebc9",
       currentIndex: 0,
-      bookChapters: []
+      bookChapters: [],
+      bookList: []
     };
   },
   computed: {
@@ -80,6 +88,7 @@ export default {
     ...mapGetters(["chapters", "currentChapter", "currentBook", "collectList", "currentId", "readStyle"])
   },
   created() {
+    this.getList(this.$route.query.chapterId, true);
     this.getData();
     // setTimeout(() => {
     //   this.bookChapters = this.chapters;
@@ -109,14 +118,36 @@ export default {
     }, 60);
   },
   methods: {
-    getData() {
-      Promise.all([
-        getBookChapters({ id: this.$route.params.id }),
-        getBookContent({ id: this.$route.params.id, chapterId: this.$route.query.chapterId })
-      ]).then(([chapterRes, contentRes]) => {
-        this.bookChapters = chapterRes;
-        this.chapterList.push(contentRes)
-      });
+    async getData() {
+      this.bookChapters = await getBookChapters({ id: this.$route.params.id });
+    },
+    async getList(chapterId, next) {
+      this.loading = true;
+      try {
+        const res = await getBookContent({ id: this.$route.params.id, chapterId });
+        if (next) {
+          this.bookList.push(res);
+        } else {
+          this.bookList.unshift(res);
+        }
+      } catch (err) {
+        throw err;
+      }
+      this.loading = false;
+    },
+    // 下拉加载
+    handleScrollToTop() {
+      if (this.loading) return;
+      if (this.bookList[0].preChapterId) {
+        this.getList(this.bookList[0].preChapterId, false);
+      }
+    },
+    // 上拉加载
+    handleScrollToBottom() {
+      if (this.loading) return;
+      if (this.bookList[this.bookList.length - 1].nextChapterId) {
+        this.getList(this.bookList[this.bookList.length - 1].nextChapterId, true);
+      }
     },
     changeColor(item, index) {
       this.currentIndex = index;
@@ -217,7 +248,8 @@ export default {
       this.setting = !this.setting;
     },
     select(item, index) {
-      this.chapterList = [];
+      this.bookList = [];
+      this.getList(item.id, true);
       this.selectRead({
         list: this.chapters,
         id: this.currentId,
@@ -367,7 +399,8 @@ export default {
     Loading,
     SettingBtn,
     BookChapters,
-    Confirm
+    Confirm,
+    BookList
   }
 };
 </script>
@@ -383,6 +416,10 @@ export default {
   z-index 150
   background #c6ebc9
   color $font-color-dd
+
+  &.book-text-wrapper--isNight
+    >>> .book-item__title
+      color #6e6e6e
   .title
     font-size 14px
     color $font-color
@@ -393,7 +430,11 @@ export default {
     height 100%
     padding 0 1rem 0 1rem
     box-sizing border-box
-    overflow scroll
+
+    .book-text-content
+      height 100%;
+      overflow auto;
+
     .text-content
       .text-item
         padding-bottom 0.625rem

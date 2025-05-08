@@ -1,7 +1,7 @@
 <template>
   <virtual-list
     class="virtual-list"
-    :data-key="'id'"
+    :data-key="'chapterId'"
     :data-sources="list"
     :data-component="itemComponent"
     :estimate-size="100"
