@@ -4,7 +4,7 @@
       <router-link tag="div" class="tab-item" to="/bookshelf">
         <div class="tab-icon">
           <i class="icon icon-bookshelf"></i>
-          <span class="icon-title">书架</span>
+          <span class="icon-title">书城</span>
         </div>
       </router-link>
       <!-- <router-link tag="div" class="tab-item" to="/handpick">

@@ -1,7 +1,7 @@
 <template>
   <div class="book-shelf-wrapper">
     <div class="top-bar">
-      <div class="title">书架</div>
+      <div class="title">书城</div>
     </div>
     <div class="search-box-wrapper">
       <search-box ref="searchBox" placeholder="请输入搜索的书名或作者" @query="onQueryChange"></search-box>

@@ -232,7 +232,7 @@ export default {
       // });
       this.$router.push({
         path: `/booktext/${this.bookInfo.id}`,
-        query: { chapterId: chapter.id }
+        query: { chapterId: chapter.id, title: this.bookInfo.title, author: this.bookInfo.author }
       });
     },
     showChapters() {
