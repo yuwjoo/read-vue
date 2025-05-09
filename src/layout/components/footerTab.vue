@@ -1,25 +1,23 @@
 <template>
   <div class="footer-tab">
-    <div class="tab">
-      <router-link tag="div" class="tab-item" to="/bookshelf">
-        <div class="tab-icon">
-          <i class="icon icon-bookshelf"></i>
-          <span class="icon-title">书城</span>
-        </div>
-      </router-link>
-      <router-link tag="div" class="tab-item" to="/classify">
-        <div class="tab-icon">
-          <i class="icon icon-class"></i>
-          <span class="icon-title">分类</span>
-        </div>
-      </router-link>
-      <router-link tag="div" class="tab-item" to="/search">
-        <div class="tab-icon">
-          <i class="icon icon-search"></i>
-          <span class="icon-title">搜索</span>
-        </div>
-      </router-link>
-    </div>
+    <router-link tag="div" class="footer-tab__item" to="/bookshelf">
+      <div class="footer-tab__content">
+        <i class="footer-tab__icon icon-bookshelf"></i>
+        <span class="footer-tab__title">书城</span>
+      </div>
+    </router-link>
+    <router-link tag="div" class="footer-tab__item" to="/classify">
+      <div class="footer-tab__content">
+        <i class="footer-tab__icon icon-class"></i>
+        <span class="footer-tab__title">分类</span>
+      </div>
+    </router-link>
+    <router-link tag="div" class="footer-tab__item" to="/search">
+      <div class="footer-tab__content">
+        <i class="footer-tab__icon icon-search"></i>
+        <span class="footer-tab__title">搜索</span>
+      </div>
+    </router-link>
   </div>
 </template>
 
@@ -46,7 +44,7 @@ export default {
     display: flex;
     align-items: center;
 
-    .tab-item {
+    .footer-tab__item {
       flex: 1;
       height: 100%;
 
@@ -54,7 +52,7 @@ export default {
         color: $theme-color;
       }
 
-      .tab-icon {
+      .footer-tab__content {
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -67,7 +65,7 @@ export default {
           margin-bottom: 0.625rem;
         }
 
-        .icon-title {
+        .footer-tab__title {
           font-size: $font-size-small-s;
         }
       }
