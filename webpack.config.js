@@ -1,23 +1,21 @@
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { VueLoaderPlugin } = require("vue-loader");
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import { VueLoaderPlugin } from "vue-loader";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { fileURLToPath } from "url";
 
-function resolve(dir) {
-  return path.join(__dirname, ".", dir);
-}
+const resolve = (dir) => fileURLToPath(new URL(dir, import.meta.url));
 
-module.exports = {
-  mode: "development",
+export default {
   entry: {
-    app: path.resolve(__dirname, "./src/main.js")
+    app: resolve("./src/main.js")
   },
   output: {
-    path: path.resolve(__dirname, "./dist"),
+    path: resolve("./dist"),
     filename: "[name].js",
     clean: true
   },
   resolve: {
-    extensions: [".js", ".vue", ".json"],
+    extensions: [".js", ".vue"],
     alias: {
       "@": resolve("src"),
       components: resolve("src/components"),
@@ -32,53 +30,50 @@ module.exports = {
     rules: [
       {
         test: /\.vue$/,
-        loader: "vue-loader"
+        loader: "vue-loader",
+        resolve: {
+          fullySpecified: false // 禁用es6导入的模块必须加后缀的限制
+        }
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: "babel-loader"
+        loader: "babel-loader",
+        resolve: {
+          fullySpecified: false // 禁用es6导入的模块必须加后缀的限制
+        }
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-        loader: "url-loader",
-        options: {
-          limit: 10000,
-          name: "static/img/[name].[hash:7].[ext]"
+        type: "asset/resource",
+        generator: {
+          filename: "img/[hash][ext][query]"
         }
       },
       {
         test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
-        loader: "url-loader",
-        options: {
-          limit: 10000,
-          name: "static/media/[name].[hash:7].[ext]"
+        type: "asset/resource",
+        generator: {
+          filename: "media/[hash][ext][query]"
         }
       },
       {
         test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-        loader: "url-loader",
-        options: {
-          limit: 10000,
-          name: "static/fonts/[name].[hash:7].[ext]"
+        type: "asset/resource",
+        generator: {
+          filename: "fonts/[hash][ext][query]"
         }
       },
       {
         test: /\.css$/i,
         use: [
-          "vue-style-loader",
-          {
-            loader: "css-loader",
-            options: {
-              sourceMap: true
-            }
-          },
+          MiniCssExtractPlugin.loader,
+          "css-loader",
           {
             loader: "postcss-loader",
             options: {
-              sourceMap: true,
               postcssOptions: {
-                plugins: [require("autoprefixer")]
+                plugins: ["autoprefixer"]
               }
             }
           }
@@ -87,40 +82,46 @@ module.exports = {
       {
         test: /\.styl(us)?$/i,
         use: [
-          "vue-style-loader",
-          {
-            loader: "css-loader",
-            options: {
-              sourceMap: true
-            }
-          },
+          MiniCssExtractPlugin.loader,
+          "css-loader",
           {
             loader: "postcss-loader",
             options: {
-              sourceMap: true,
               postcssOptions: {
-                plugins: [require("autoprefixer")]
+                plugins: ["autoprefixer"]
               }
             }
           },
+          "stylus-loader"
+        ]
+      },
+      {
+        test: /\.s[ac]ss$/i,
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
           {
-            loader: "stylus-loader",
+            loader: "postcss-loader",
             options: {
-              sourceMap: true
+              postcssOptions: {
+                plugins: ["autoprefixer"]
+              }
             }
-          }
+          },
+          "sass-loader"
         ]
       }
     ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, "./index.html"),
-      filename: "index.html" // 输出的文件名
+      template: resolve("./index.html"),
+      filename: "index.html"
     }),
-    new VueLoaderPlugin()
-  ],
-  devServer: {
-    port: 8080
-  }
+    new VueLoaderPlugin(),
+    new MiniCssExtractPlugin({
+      filename: "css/[name][hash].css",
+      chunkFilename: "css/[name][hash].css"
+    }) // 提取css成单独文件
+  ]
 };
