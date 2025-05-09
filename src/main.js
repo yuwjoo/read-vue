@@ -21,7 +21,6 @@ Vue.use(VueLazyload, {
 
 Vue.use(Vant);
 
-/* eslint-disable no-new */
 new Vue({
   el: "#app",
   router,
